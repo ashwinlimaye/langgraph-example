@@ -1,7 +1,11 @@
 {
-  "dependencies": ["./my_agent"],
+  "python_version": "3.11",
+  "dockerfile_lines": [],
+  "dependencies": [
+    "./my_agent"
+  ],
   "graphs": {
-    "agent": "./my_agent/agent.py:graph"
+    "essay_writer_agent": "./my_agent/essay_writer_agent.py:graph"
   },
   "env": ".env"
 }
