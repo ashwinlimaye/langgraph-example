@@ -3,14 +3,13 @@ from urllib import response
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
-# from my_agent.utils.tools import tools
-# from langgraph.prebuilt import ToolNode
 from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage, AIMessage, ChatMessage
 from my_agent.utils.state import AgentState_er
 from typing import List
 from langchain_core.pydantic_v1 import BaseModel
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langgraph.graph import END
+from tavily import TavilyClient
 
 @lru_cache(maxsize=4)
 def _get_model(model_name: str):
@@ -20,7 +19,7 @@ def _get_model(model_name: str):
         elif model_name == "anthropic":
             model =  ChatAnthropic(temperature=0, model_name="claude-3-haiku-20240307")
         elif model_name == "gemini":
-            model =  ChatGoogleGenerativeAI(model_name="gemini-pro", temperature=0)
+            model =  ChatGoogleGenerativeAI(model_name="models/gemini-pro", temperature=0)
         else:
             raise ValueError(f"Unsupported model type: {model_name}")
     except Exception as e:
@@ -115,11 +114,11 @@ def research_plan_node(state: AgentState_er, config: dict):
     content = state['content'] or []
     for q in queries.queries:
         print(f"Query: {q}")
-        # response = ToolNode([TavilySearchResults(max_results=3)]).invoke([{"query": q }])
-        response = None # stubbing out
+        response = TavilyClient().search(q, max_results=3, include_raw_content=False)
+        # response = None # stubbing out
         print(f"Response: {response}")
-        #for r in response['results']:
-        #    content.append(r['content'])
+        for r in response['results']:
+            content.append(r['content'])
     print("Exiting research plan node with:", content)
     return {"content": content}
 
@@ -171,10 +170,10 @@ def research_critique_node(state: AgentState_er, config: dict):
     ])
     content = state['content'] or []
     for q in queries.queries:
-        # response = ToolNode([TavilySearchResults(max_results=3)]).invoke([q])
-        response = None # stubbing out
-        # for r in response['results']:
-        #     content.append(r['content'])
+        response = TavilyClient().search(q, max_results=3, include_raw_content=False)
+        # response = None # stubbing out
+        for r in response['results']:
+             content.append(r['content'])
     print("Exiting research critique node with:", content)
     return {"content": content}
 
