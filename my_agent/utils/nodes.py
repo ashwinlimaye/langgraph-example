@@ -111,10 +111,12 @@ def research_plan_node(state: AgentState_er, config: dict):
         SystemMessage(content=RESEARCH_PLAN_PROMPT),
         HumanMessage(content=state['task'])
     ])
+    if "content" not in state or state['content'] is None:
+        state['content'] = []
     content = state['content'] or []
     for q in queries.queries:
         print(f"Query: {q}")
-        response = TavilyClient().search(q, max_results=3, include_raw_content=False)
+        response = TavilyClient().search(q, max_results=2, include_raw_content=False)
         # response = None # stubbing out
         print(f"Response: {response}")
         for r in response['results']:
@@ -135,14 +137,14 @@ def generation_node(state: AgentState_er, config: dict):
         user_message
         ]
     try : 
-        if state["revision_number"] is None:
+        if "revision_number" not in state or state["revision_number"] is None:
             state["revision_number"] = 0
-        current_revision_number = state["revision_number"]
-        print(f"Current revision number: {current_revision_number}")
     except Exception as e:
         print(f"Error: {e}")
+    # print(f"Current revision number: {state["revision_number"]}")
     print("Generation node invoked with messages:", messages)
     response = model.invoke(messages)
+    current_revision_number = state["revision_number"]
     current_revision_number += 1
     print("Exiting generation node with:", response.content)
     return {
@@ -170,7 +172,7 @@ def research_critique_node(state: AgentState_er, config: dict):
     ])
     content = state['content'] or []
     for q in queries.queries:
-        response = TavilyClient().search(q, max_results=3, include_raw_content=False)
+        response = TavilyClient().search(q, max_results=2, include_raw_content=False)
         # response = None # stubbing out
         for r in response['results']:
              content.append(r['content'])
@@ -179,9 +181,7 @@ def research_critique_node(state: AgentState_er, config: dict):
 
 def should_continue_er(state):
     if "max_revisions" not in state or state["max_revisions"] is None :
-        state["max_revisions"] = 0
-    if state["max_revisions"] == 0 :
-        state["max_revisions"] = 3 # default number of revisions
+        state["max_revisions"] = 2 # default number of revisions
     if state["revision_number"] > state["max_revisions"]:
         return END
     return "reflect"

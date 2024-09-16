@@ -12,4 +12,4 @@ class AgentState_er(TypedDict):
     critique: str
     content: List[str]
     revision_number: int = 0
-    max_revisions: int = 3
+    max_revisions: int = 2
